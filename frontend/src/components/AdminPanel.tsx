@@ -29,14 +29,14 @@ const ALL_COUNTRIES: { code: string; name: string }[] = [
   {code:'ID',name:'Indonesia'},{code:'IR',name:'Iran'},{code:'IQ',name:'Iraq'},
   {code:'IE',name:'Ireland'},{code:'IL',name:'Israel'},{code:'IT',name:'Italy'},
   {code:'JM',name:'Jamaica'},{code:'JP',name:'Japan'},{code:'JO',name:'Jordan'},
-  {code:'KZ',name:'Kazakhstan'},{code:'KE',name:'Kenya'},{code:'KW',name:'Kuwait'},
+  {code:'KZ',name:'Kazakhstan'},{code:'KE',name:'Kenya'},{code:'KR',name:'South Korea'},{code:'KW',name:'Kuwait'},
   {code:'KG',name:'Kyrgyzstan'},{code:'LA',name:'Laos'},{code:'LV',name:'Latvia'},
   {code:'LB',name:'Lebanon'},{code:'LS',name:'Lesotho'},{code:'LR',name:'Liberia'},
-  {code:'LY',name:'Libya'},{code:'LT',name:'Lithuania'},{code:'LU',name:'Luxembourg'},
+  {code:'LI',name:'Liechtenstein'},{code:'LY',name:'Libya'},{code:'LT',name:'Lithuania'},{code:'LU',name:'Luxembourg'},
   {code:'MG',name:'Madagascar'},{code:'MW',name:'Malawi'},{code:'MY',name:'Malaysia'},
   {code:'MV',name:'Maldives'},{code:'ML',name:'Mali'},{code:'MT',name:'Malta'},
   {code:'MR',name:'Mauritania'},{code:'MU',name:'Mauritius'},{code:'MX',name:'Mexico'},
-  {code:'MD',name:'Moldova'},{code:'MN',name:'Mongolia'},{code:'MA',name:'Morocco'},
+  {code:'MC',name:'Monaco'},{code:'MD',name:'Moldova'},{code:'MN',name:'Mongolia'},{code:'MA',name:'Morocco'},
   {code:'MZ',name:'Mozambique'},{code:'MM',name:'Myanmar'},{code:'NA',name:'Namibia'},
   {code:'NP',name:'Nepal'},{code:'NL',name:'Netherlands'},{code:'NZ',name:'New Zealand'},
   {code:'NI',name:'Nicaragua'},{code:'NE',name:'Niger'},{code:'NG',name:'Nigeria'},
@@ -212,7 +212,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   const [loading, setLoading]   = useState(true)
   const [saving, setSaving]     = useState<string | null>(null)
 
-  const emptyBroker = { name: '', tagline: '', affiliate_link: '', logo_url: '', countries: [] as string[], display_order: '' }
+  const emptyBroker = { name: '', tagline: '', affiliate_link: '', logo_url: '', countries: [] as string[], display_order: '', active: false }
   const [brokerForm, setBrokerForm]   = useState(emptyBroker)
   const [brokerSaving, setBrokerSaving] = useState(false)
   const [brokerMsg, setBrokerMsg]       = useState('')
@@ -270,7 +270,7 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
   async function addBroker() {
     setBrokerSaving(true); setBrokerMsg('')
     const countries = brokerForm.countries
-    const { error } = await supabase.from('broker_partners').insert({ name: brokerForm.name, tagline: brokerForm.tagline || null, affiliate_link: brokerForm.affiliate_link, logo_url: brokerForm.logo_url || null, countries, display_order: Number(brokerForm.display_order), active: true })
+    const { error } = await supabase.from('broker_partners').insert({ name: brokerForm.name, tagline: brokerForm.tagline || null, affiliate_link: brokerForm.affiliate_link, logo_url: brokerForm.logo_url || null, countries, display_order: Number(brokerForm.display_order), active: brokerForm.active })
     if (error) setBrokerMsg(error.message)
     else { setBrokerForm(emptyBroker); setBrokerMsg('Added!'); await loadBrokers() }
     setBrokerSaving(false)
@@ -572,6 +572,25 @@ export function AdminPanel({ onClose }: { onClose: () => void }) {
                   />
                 ))}
                 <CountrySelect selected={brokerForm.countries} onChange={v => setBrokerForm(f => ({ ...f, countries: v }))} />
+                <label className="flex items-center gap-2 cursor-pointer" style={{ padding: '4px 2px' }}>
+                  <div
+                    onClick={() => setBrokerForm(f => ({ ...f, active: !f.active }))}
+                    style={{
+                      width: 36, height: 20, borderRadius: 10, cursor: 'pointer', transition: 'background 0.2s',
+                      background: brokerForm.active ? 'rgba(16,185,129,0.6)' : 'rgba(255,255,255,0.1)',
+                      border: brokerForm.active ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.12)',
+                      position: 'relative', flexShrink: 0,
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute', top: 2, left: brokerForm.active ? 18 : 2,
+                      width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s',
+                    }} />
+                  </div>
+                  <span className="text-[11px] text-gray-500">
+                    Active (visible in app){brokerForm.active ? ' — ON' : ' — OFF'}
+                  </span>
+                </label>
               </div>
               {brokerMsg && (
                 <p className="text-[11px]" style={{ marginTop: 8, color: brokerMsg === 'Added!' ? '#34d399' : '#f87171' }}>{brokerMsg}</p>
