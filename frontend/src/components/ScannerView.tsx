@@ -222,60 +222,50 @@ export function ScannerView({ onSelectAsset, onClose }: Props) {
         </div>
 
         {/* Row 2: filters */}
-        <div className="flex items-center gap-5 px-5 pb-3 border-t border-white/4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-0 px-4 pb-3 border-t border-white/4">
 
           {/* Category */}
-          <div className="flex items-center gap-1 pt-3">
+          <div className="flex items-center gap-1 pt-3 overflow-x-auto">
             {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
               <button key={key} onClick={() => setCategory(key)}
                 className={[
-                  'text-[11px] font-medium transition-all cursor-pointer rounded-md',
+                  'text-[11px] font-medium transition-all cursor-pointer rounded-md shrink-0',
                   category === key
                     ? 'text-white bg-white/10 border border-white/14'
                     : 'text-gray-600 hover:text-gray-300',
                 ].join(' ')}
-                style={{ padding: '4px 10px' }}
+                style={{ padding: '4px 9px', minHeight: 30 }}
               >
                 {label}
               </button>
             ))}
           </div>
 
-          {/* Divider */}
-          <div className="w-px h-4 bg-white/8 shrink-0 mt-3" />
-
-          {/* BUY / SELL */}
-          <div className="flex items-center gap-1 pt-3">
+          {/* BUY / SELL + min score on same row */}
+          <div className="flex items-center gap-2 pt-3 ml-auto">
             {(['all', 'BUY', 'SELL'] as const).map((t) => (
               <button key={t} onClick={() => setSignalType(t)}
                 className={[
-                  'text-[11px] font-semibold transition-all cursor-pointer rounded-md border',
+                  'text-[11px] font-semibold transition-all cursor-pointer rounded-md border shrink-0',
                   signalType === t
                     ? t === 'BUY'  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25'
                     : t === 'SELL' ? 'bg-red-500/15 text-red-400 border-red-500/25'
                     : 'bg-white/10 text-white border-white/14'
                     : 'text-gray-600 border-transparent hover:text-gray-300',
                 ].join(' ')}
-                style={{ padding: '4px 10px' }}
+                style={{ padding: '4px 9px', minHeight: 30 }}
               >
                 {t === 'all' ? 'All' : t}
               </button>
             ))}
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-4 bg-white/8 shrink-0 mt-3" />
-
-          {/* Min score */}
-          <div className="flex items-center gap-3 pt-3">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-600 shrink-0">Min score</span>
+            <div className="w-px h-4 bg-white/8 shrink-0" />
             <input
               type="range" min={0} max={80} step={5}
               value={minScore}
               onChange={e => setMinScore(Number(e.target.value))}
-              className="w-24 h-px appearance-none bg-white/12 accent-violet-500 cursor-pointer"
+              className="w-20 h-px appearance-none bg-white/12 accent-violet-500 cursor-pointer"
             />
-            <span className="text-[11px] font-mono text-gray-500 w-5">{minScore || '—'}</span>
+            <span className="text-[11px] font-mono text-gray-500 w-5 shrink-0">{minScore || '—'}</span>
           </div>
 
         </div>

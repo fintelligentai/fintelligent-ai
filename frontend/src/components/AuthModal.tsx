@@ -12,6 +12,8 @@ const MODAL_STYLE = {
   background: 'linear-gradient(145deg, #12131e 0%, #0c0d16 100%)',
   border: '1px solid rgba(255,255,255,0.08)',
   boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)',
+  maxHeight: 'calc(100dvh - 40px)',
+  overflowY: 'auto' as const,
 }
 
 const INPUT_STYLE = {

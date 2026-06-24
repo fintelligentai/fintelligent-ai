@@ -129,27 +129,36 @@ export default function App() {
     setGateReason(reason)
   }
 
+  const [bottomSheet, setBottomSheet] = useState(false)
+
+  const navItems = [
+    { key: 'scanner',  label: 'Scanner',  icon: '⚡', active: scannerOpen,  onClick: () => gate('Scan 500+ assets across all markets for active supply & demand signals.', () => { setScannerOpen(v => !v); setCongressOpen(false); setIpoOpen(false) }) },
+    { key: 'insiders', label: 'Insiders', icon: '🕵️', active: congressOpen, onClick: () => gate('View significant insider buying and selling activity from SEC filings.', () => { setCongressOpen(v => !v); setScannerOpen(false); setIpoOpen(false) }) },
+    { key: 'ipos',     label: 'IPOs',     icon: '🚀', active: ipoOpen,      onClick: () => gate('Track upcoming IPOs and their expected market significance.', () => { setIpoOpen(v => !v); setScannerOpen(false); setCongressOpen(false) }) },
+  ]
+
   return (
     <>
     <div className="flex flex-col h-screen w-full text-gray-200 overflow-hidden" style={{ background: 'linear-gradient(170deg, #0d0e1b 0%, #080910 100%)' }}>
       {!acknowledged && (
         <AcknowledgmentModal onAcknowledge={() => setAcknowledged(true)} />
       )}
-      {/* Header */}
-      <header className="flex items-center py-2.5 px-5 border-b border-white/6 shrink-0 bg-[#0a0b13] gap-0 flex-wrap sm:flex-nowrap">
 
-        {/* ── Brand ── */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Logo size={38} />
-          <span className="text-[13px] font-bold tracking-tight text-white">Fintelligent</span>
-          <span className="hidden sm:block text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(0,210,168,0.42)' }}>S&D</span>
-        </div>
+      {/* ── Header ── */}
+      <header className="shrink-0 bg-[#0a0b13] border-b border-white/6">
 
-        {/* Divider */}
-        <div className="hidden sm:block w-px h-5 mx-5 shrink-0 bg-white/8" />
+        {/* Row 1: Brand + Asset + Price + Account */}
+        <div className="flex items-center gap-2 px-3 sm:px-5 py-2">
+          {/* Brand */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Logo size={30} />
+            <span className="text-[13px] font-bold tracking-tight text-white hidden xs:block">Fintelligent</span>
+            <span className="hidden sm:block text-[9px] font-bold tracking-[0.18em] uppercase" style={{ color: 'rgba(0,210,168,0.42)' }}>S&D</span>
+          </div>
 
-        {/* ── Asset + Price + Timeframe ── */}
-        <div className="flex items-center gap-3 min-w-0 py-2 sm:py-0">
+          <div className="hidden sm:block w-px h-5 mx-2 shrink-0 bg-white/8" />
+
+          {/* Asset picker */}
           <div className={!isPremium ? 'pointer-events-none opacity-50 relative' : 'relative'}>
             <AssetPicker selected={asset} onChange={handleAssetChange} />
             {!isPremium && (
@@ -158,85 +167,32 @@ export default function App() {
             )}
           </div>
 
+          {/* Watchlist pin */}
           <button
             onClick={() => isPremium ? toggle(asset) : gate('Save assets to your watchlist and track them across sessions.')}
-            title={isPinned(ticker) ? 'Remove from watchlist' : 'Add to watchlist'}
             className={['text-base transition-colors cursor-pointer shrink-0',
               isPremium && isPinned(ticker) ? 'text-amber-400' : 'text-gray-700 hover:text-gray-500'].join(' ')}
+            style={{ minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             {isPremium && isPinned(ticker) ? '★' : '☆'}
           </button>
 
+          {/* Price */}
           {currentPrice != null && (
-            <div className="flex items-center gap-2 leading-none shrink-0">
-              <span className="text-[13px] font-mono font-medium text-gray-200 tracking-tight">
+            <div className="flex items-center gap-1.5 leading-none shrink-0 min-w-0">
+              <span className="text-[12px] font-mono font-medium text-gray-200 tracking-tight truncate">
                 {currentPrice.toLocaleString(undefined, { maximumFractionDigits: 5 })}
               </span>
-              {zonesQuery.data && (
-                <>
-                  <span className="text-gray-800" style={{ fontSize: 10 }}>·</span>
-                  <span className="text-gray-700 font-mono" style={{ fontSize: 10 }}>
-                    {new Date(zonesQuery.data.detected_at).toLocaleTimeString()}
-                  </span>
-                </>
-              )}
+              {zonesQuery.isFetching && <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse shrink-0" />}
             </div>
           )}
 
-          <TimeframeSelector
-            selected={timeframe}
-            onChange={(tf) => gate('Switch to Weekly and Monthly timeframes for broader market perspective.', () => handleTimeframeChange(tf))}
-            lockedTimeframes={isPremium ? [] : ['1wk', '1mo']}
-          />
-        </div>
+          <div className="flex-1" />
 
-        {/* ── Nav modules ── */}
-        <div className="flex items-center gap-1.5 shrink-0" style={{ marginLeft: 32 }}>
-          {[
-            { key: 'scanner',  label: 'Scanner',  icon: '⚡', active: scannerOpen,  onClick: () => gate('Scan 500+ assets across all markets for active supply & demand signals.', () => { setScannerOpen(v => !v); setCongressOpen(false); setIpoOpen(false) }) },
-            { key: 'insiders', label: 'Insiders', icon: '🕵️', active: congressOpen, onClick: () => gate('View significant insider buying and selling activity from SEC filings.', () => { setCongressOpen(v => !v); setScannerOpen(false); setIpoOpen(false) }) },
-            { key: 'ipos',     label: 'IPOs',     icon: '🚀', active: ipoOpen,      onClick: () => gate('Track upcoming IPOs and their expected market significance.', () => { setIpoOpen(v => !v); setScannerOpen(false); setCongressOpen(false) }) },
-          ].map(({ key, label, icon, active, onClick }) => (
-            <button key={key} onClick={onClick}
-              className={[
-                'flex items-center gap-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer border',
-                active
-                  ? 'bg-violet-600 text-white border-violet-500/60 shadow-sm shadow-violet-900/40'
-                  : isPremium
-                    ? 'text-gray-400 border-white/8 bg-white/4 hover:bg-white/8 hover:text-gray-200 hover:border-white/12'
-                    : 'text-gray-700 border-white/5 bg-white/2 opacity-60',
-              ].join(' ')}
-              style={{ padding: '5px 11px' }}
-            >
-              <span>{icon}</span>
-              <span>{label}</span>
-              {!isPremium && <span className="text-[9px] opacity-60">🔒</span>}
-            </button>
-          ))}
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* ── Right actions ── */}
-        <div className="flex items-center gap-2 shrink-0">
-
-          {/* Refresh indicator */}
-          {zonesQuery.isFetching && (
-            <div className="flex items-center gap-1.5 mr-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-            </div>
-          )}
-
-          {/* Alerts */}
+          {/* Alerts — hidden on mobile */}
           <button
             onClick={() => isPremium ? handleAlertsToggle() : gate('Get notified instantly when price enters a supply or demand zone.')}
-            title={
-              !isPremium ? 'Premium feature'
-              : permission === 'denied' ? 'Notifications blocked — enable in browser settings'
-              : alertsEnabled ? 'Disable zone alerts' : 'Enable zone alerts'
-            }
-            className={['flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer',
+            className={['hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer',
               isPremium && alertsEnabled
                 ? 'bg-violet-600/20 text-violet-300 border border-violet-500/30'
                 : 'text-gray-600 hover:text-gray-400 border border-white/6',
@@ -244,12 +200,11 @@ export default function App() {
             ].join(' ')}
           >
             <span>{isPremium && alertsEnabled ? '🔔' : '🔕'}</span>
-            <span className="hidden sm:block">{isPremium && alertsEnabled ? 'Alerts on' : 'Alerts'}</span>
+            <span>{isPremium && alertsEnabled ? 'Alerts on' : 'Alerts'}</span>
             {!isPremium && <span className="text-[9px] opacity-70">🔒</span>}
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-white/8 mx-1 shrink-0" />
+          <div className="hidden sm:block w-px h-5 bg-white/8 mx-1 shrink-0" />
 
           {/* Account */}
           {user ? (
@@ -262,10 +217,43 @@ export default function App() {
             />
           ) : (
             <button onClick={() => setAuthOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border border-violet-500/40 text-violet-400 hover:bg-violet-600/15">
+              className="flex items-center gap-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border border-violet-500/40 text-violet-400 hover:bg-violet-600/15"
+              style={{ padding: '7px 12px', minHeight: 32 }}>
               Sign in
             </button>
           )}
+        </div>
+
+        {/* Row 2: Timeframe + Nav modules */}
+        <div className="flex items-center gap-2 px-3 sm:px-5 pb-2 border-t border-white/4" style={{ paddingTop: 6 }}>
+          <TimeframeSelector
+            selected={timeframe}
+            onChange={(tf) => gate('Switch to Weekly and Monthly timeframes for broader market perspective.', () => handleTimeframeChange(tf))}
+            lockedTimeframes={isPremium ? [] : ['1wk', '1mo']}
+          />
+
+          <div className="w-px h-4 bg-white/8 shrink-0" />
+
+          {/* Nav modules */}
+          <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto">
+            {navItems.map(({ key, label, icon, active, onClick }) => (
+              <button key={key} onClick={onClick}
+                className={[
+                  'flex items-center gap-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer border shrink-0',
+                  active
+                    ? 'bg-violet-600 text-white border-violet-500/60'
+                    : isPremium
+                      ? 'text-gray-400 border-white/8 bg-white/4 hover:bg-white/8 hover:text-gray-200'
+                      : 'text-gray-700 border-white/5 bg-white/2 opacity-60',
+                ].join(' ')}
+                style={{ padding: '5px 10px', minHeight: 30 }}
+              >
+                <span>{icon}</span>
+                <span>{label}</span>
+                {!isPremium && <span className="text-[9px] opacity-60">🔒</span>}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -291,11 +279,11 @@ export default function App() {
       )}
 
       {/* Main content — stacks on mobile, side-by-side on md+ */}
-      <div className={`flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 ${scannerOpen || congressOpen || ipoOpen ? 'hidden' : ''}`}>
+      <div className={`flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative ${scannerOpen || congressOpen || ipoOpen ? 'hidden' : ''}`}>
         {/* Chart + signals column */}
-        <div className="flex flex-col flex-1 min-w-0 min-h-0">
-          {/* Chart */}
-          <main className="flex-1 relative min-h-0">
+        <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto md:overflow-hidden">
+          {/* Chart — fixed height on mobile, flex-1 on desktop */}
+          <main className="relative shrink-0 min-h-[240px] md:min-h-0 md:flex-1">
             {ohlcvQuery.isLoading && (
               <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
                 Loading chart…
@@ -332,10 +320,39 @@ export default function App() {
             timeframe={timeframe}
             ticker={ticker}
           />
+
+          {/* Mobile zones toggle button */}
+          <div className="md:hidden shrink-0 border-t border-white/6 bg-[#09090e]">
+            <button
+              onClick={() => setBottomSheet(v => !v)}
+              className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-gray-500 cursor-pointer"
+              style={{ padding: '12px 16px', minHeight: 44 }}
+            >
+              <span>Zones & Watchlist</span>
+              <span style={{ fontSize: 16 }}>{bottomSheet ? '▼' : '▲'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Zone / Watchlist sidebar */}
-        <aside className="w-full md:w-72 shrink-0 border-t md:border-t-0 md:border-l border-white/6 flex flex-col overflow-hidden max-h-56 md:max-h-none bg-[#09090e]">
+        {/* Zone / Watchlist sidebar — desktop: fixed right panel, mobile: slide-up sheet */}
+        <aside className={[
+          'shrink-0 border-white/6 flex flex-col bg-[#09090e]',
+          // Desktop: always visible on the right
+          'md:w-72 md:border-l md:border-t-0 md:max-h-none md:relative md:translate-y-0',
+          // Mobile: slide-up sheet from bottom, shown when bottomSheet=true
+          bottomSheet
+            ? 'fixed md:static bottom-0 left-0 right-0 z-40 border-t rounded-t-2xl'
+            : 'hidden md:flex',
+        ].join(' ')}
+          style={{ maxHeight: bottomSheet ? '65vh' : undefined }}
+        >
+          {/* Mobile drag handle */}
+          {bottomSheet && (
+            <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-white/20" />
+            </div>
+          )}
+
           {/* Tab toggle */}
           <div className="flex shrink-0 border-b border-white/6">
             {(['zones', 'watchlist', 'congress'] as const).map((tab) => {
@@ -350,11 +367,12 @@ export default function App() {
                     : setSidebarTab(tab)
                   }
                   className={[
-                    'flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors cursor-pointer',
+                    'flex-1 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors cursor-pointer',
                     sidebarTab === tab
                       ? 'text-gray-200 border-b-2 border-violet-500 -mb-px'
                       : locked ? 'text-gray-700 hover:text-gray-600' : 'text-gray-600 hover:text-gray-400',
                   ].join(' ')}
+                  style={{ padding: '12px 4px', minHeight: 44 }}
                 >
                   {tab === 'watchlist'
                     ? `★ Watchlist${isPremium && watchlist.length ? ` (${watchlist.length})` : ''}${locked ? ' 🔒' : ''}`
@@ -422,6 +440,14 @@ export default function App() {
             )}
           </div>
         </aside>
+
+        {/* Backdrop for mobile bottom sheet */}
+        {bottomSheet && (
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-black/40"
+            onClick={() => setBottomSheet(false)}
+          />
+        )}
       </div>
     </div>
 
