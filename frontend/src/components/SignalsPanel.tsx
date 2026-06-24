@@ -140,7 +140,7 @@ export function SignalsPanel({ data, isLoading, rr, onRRChange, selectedZoneId, 
   const allSignals  = [...buySignals, ...sellSignals].sort((a, b) => {
     if (a.zone_id === selectedZoneId) return -1
     if (b.zone_id === selectedZoneId) return 1
-    return b.signal_strength - a.signal_strength
+    return a.distance_pct - b.distance_pct
   })
 
   return (
