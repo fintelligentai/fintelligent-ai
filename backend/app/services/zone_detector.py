@@ -270,22 +270,13 @@ def detect_zones(
 
         impulse_ratio = settings.impulse_move_atr_ratio
 
-        # Determine the leg IN to the base.
-        # Check both a tight (5-candle) and wide (20-candle) window — take either.
-        # Gradual multi-week approaches (e.g. BTC $109K→$74K) won't show up in 5
-        # candles but are real institutional moves. The leg-out stays tight so only
-        # bases with an explosive departure qualify, keeping zone quality high.
-        leg_in_bullish = (
-            _is_bullish_impulse(df, max(0, base_start - 5),  base_start, atr_at_base, impulse_ratio) or
-            _is_bullish_impulse(df, max(0, base_start - 20), base_start, atr_at_base, impulse_ratio)
-        )
-        leg_in_bearish = (
-            _is_bearish_impulse(df, max(0, base_start - 5),  base_start, atr_at_base, impulse_ratio) or
-            _is_bearish_impulse(df, max(0, base_start - 20), base_start, atr_at_base, impulse_ratio)
-        )
+        # Determine the leg IN to the base (what happened before the base)
+        leg_in_start = max(0, base_start - 5)  # look back up to 5 candles
+        leg_in_bullish = _is_bullish_impulse(df, leg_in_start, base_start, atr_at_base, impulse_ratio)
+        leg_in_bearish = _is_bearish_impulse(df, leg_in_start, base_start, atr_at_base, impulse_ratio)
 
-        # Leg OUT stays tight — a real zone departure should be decisive within 5 candles
-        leg_out_end = min(n - 1, base_end + 5)
+        # Determine the leg OUT from the base (what happens after the base)
+        leg_out_end = min(n - 1, base_end + 5)  # look forward up to 5 candles
         leg_out_bullish = _is_bullish_impulse(df, base_end, leg_out_end, atr_at_base, impulse_ratio)
         leg_out_bearish = _is_bearish_impulse(df, base_end, leg_out_end, atr_at_base, impulse_ratio)
 
