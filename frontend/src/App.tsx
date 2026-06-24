@@ -447,8 +447,8 @@ export default function App() {
     {bottomSheet && (
       <>
         <div className="md:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setBottomSheet(false)} />
-        <aside className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-[#09090e] border-t border-white/10 rounded-t-2xl"
-          style={{ maxHeight: '65vh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <aside className="md:hidden fixed left-0 right-0 z-40 flex flex-col bg-[#09090e] border-t border-white/10 rounded-t-2xl"
+          style={{ bottom: 'calc(48px + env(safe-area-inset-bottom, 0px))', maxHeight: '65vh' }}>
           <div className="flex justify-center pt-3 pb-1 shrink-0">
             <div className="w-10 h-1 rounded-full bg-white/20" />
           </div>
