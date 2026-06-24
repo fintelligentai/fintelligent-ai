@@ -75,7 +75,7 @@ export function UnlockScreen({ onClose, onEnterBrokerId, isAdmin }: Props) {
           background: 'linear-gradient(145deg, #12131e 0%, #0c0d16 100%)',
           border: '1px solid rgba(255,255,255,0.08)',
           boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)',
-          maxHeight: '90vh',
+          maxHeight: 'calc(100dvh - 32px)',
         }}
       >
         {/* Header */}
@@ -86,7 +86,7 @@ export function UnlockScreen({ onClose, onEnterBrokerId, isAdmin }: Props) {
               <span className="text-[12px] font-bold text-white tracking-tight">Fintelligent</span>
               <span className="text-[9px] font-bold uppercase" style={{ letterSpacing: '0.14em', color: 'rgba(0,210,168,0.5)' }}>S&D</span>
             </div>
-            <button onClick={onClose} className="text-gray-700 hover:text-gray-400 transition-colors cursor-pointer text-lg leading-none">✕</button>
+            <button onClick={onClose} className="text-gray-700 hover:text-gray-400 transition-colors cursor-pointer flex items-center justify-center" style={{ minWidth: 44, minHeight: 44, fontSize: 18 }}>✕</button>
           </div>
 
           <h2 className="text-[15px] font-bold text-white" style={{ marginBottom: 4 }}>Unlock Full Access</h2>
@@ -95,21 +95,23 @@ export function UnlockScreen({ onClose, onEnterBrokerId, isAdmin }: Props) {
           </p>
         </div>
 
-        {/* How it works */}
-        <div className="shrink-0" style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <p className="text-[10px] font-semibold uppercase text-gray-600" style={{ letterSpacing: '0.12em', marginBottom: 10 }}>How it works</p>
-          <div className="grid grid-cols-3" style={{ gap: 8 }}>
+        {/* How it works — compact inline steps on mobile, 3-col on larger screens */}
+        <div className="shrink-0" style={{ padding: '12px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center" style={{ gap: 6 }}>
             {[
-              { n: '1', text: 'Choose a broker below and open a free account' },
-              { n: '2', text: 'Make a qualifying deposit via our partner link' },
-              { n: '3', text: "Submit your broker ID in Settings — we'll upgrade you" },
-            ].map(({ n, text }) => (
-              <div key={n} className="text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: '12px 10px' }}>
-                <div className="flex items-center justify-center mx-auto" style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.3)', marginBottom: 8 }}>
-                  <span className="text-[10px] font-bold text-violet-300">{n}</span>
+              { n: '1', text: 'Open broker account' },
+              { n: '2', text: 'Make a deposit' },
+              { n: '3', text: 'Submit broker ID' },
+            ].map(({ n, text }, i, arr) => (
+              <>
+                <div key={n} className="flex items-center" style={{ gap: 6, flex: 1 }}>
+                  <div className="flex items-center justify-center shrink-0" style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(124,58,237,0.3)' }}>
+                    <span className="text-[10px] font-bold text-violet-300">{n}</span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 leading-tight">{text}</p>
                 </div>
-                <p className="text-[10px] text-gray-500 leading-relaxed">{text}</p>
-              </div>
+                {i < arr.length - 1 && <span className="text-gray-700 shrink-0" style={{ fontSize: 10 }}>→</span>}
+              </>
             ))}
           </div>
         </div>
@@ -170,22 +172,17 @@ export function UnlockScreen({ onClose, onEnterBrokerId, isAdmin }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0" style={{ padding: '12px 24px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-            <p className="text-[11px] text-gray-600">Already deposited with a partner?</p>
+        <div className="shrink-0" style={{ padding: '4px 24px 8px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-gray-600">Already deposited?</p>
             <button
               onClick={() => { onClose(); onEnterBrokerId() }}
-              className="text-[11px] font-semibold text-violet-400 hover:text-violet-300 cursor-pointer transition-colors"
+              className="text-[11px] font-semibold text-violet-400 hover:text-violet-300 cursor-pointer transition-colors flex items-center"
+              style={{ minHeight: 44, paddingLeft: 12 }}
             >
-              Enter your broker ID →
+              Enter broker ID →
             </button>
           </div>
-          <p className="text-[10px] text-gray-700 text-center">
-            Need help?{' '}
-            <a href="mailto:fintelligent.ai@gmail.com" className="text-gray-600 hover:text-violet-400 transition-colors">
-              fintelligent.ai@gmail.com
-            </a>
-          </p>
         </div>
       </div>
     </div>

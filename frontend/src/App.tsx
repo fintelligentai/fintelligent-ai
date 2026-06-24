@@ -172,7 +172,7 @@ export default function App() {
             onClick={() => isPremium ? toggle(asset) : gate('Save assets to your watchlist and track them across sessions.')}
             className={['text-base transition-colors cursor-pointer shrink-0',
               isPremium && isPinned(ticker) ? 'text-amber-400' : 'text-gray-700 hover:text-gray-500'].join(' ')}
-            style={{ minWidth: 28, minHeight: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             {isPremium && isPinned(ticker) ? '★' : '☆'}
           </button>
@@ -218,7 +218,7 @@ export default function App() {
           ) : (
             <button onClick={() => setAuthOpen(true)}
               className="flex items-center gap-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border border-violet-500/40 text-violet-400 hover:bg-violet-600/15"
-              style={{ padding: '7px 12px', minHeight: 32 }}>
+              style={{ padding: '7px 12px', minHeight: 44 }}>
               Sign in
             </button>
           )}
@@ -244,7 +244,7 @@ export default function App() {
                     ? 'text-gray-400 border-white/8 bg-white/4 hover:bg-white/8 hover:text-gray-200'
                     : 'text-gray-700 border-white/5 bg-white/2 opacity-60',
               ].join(' ')}
-              style={{ padding: '5px 10px', minHeight: 30 }}
+              style={{ padding: '5px 10px', minHeight: 44 }}
             >
               <span>{icon}</span>
               <span>{label}</span>

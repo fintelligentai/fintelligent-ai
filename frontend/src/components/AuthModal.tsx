@@ -132,18 +132,18 @@ export function AuthModal({ onClose }: Props) {
           </form>
 
           {/* Footer links */}
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between">
             {mode === 'signin' && (
               <>
-                <button onClick={() => setMode('forgot')} className="text-[11px] text-gray-600 hover:text-gray-400 cursor-pointer transition-colors">Forgot password?</button>
-                <button onClick={() => setMode('signup')} className="text-[11px] text-violet-400 hover:text-violet-300 cursor-pointer transition-colors">Create account →</button>
+                <button onClick={() => setMode('forgot')} className="text-[11px] text-gray-600 hover:text-gray-400 cursor-pointer transition-colors flex items-center" style={{ minHeight: 44 }}>Forgot password?</button>
+                <button onClick={() => setMode('signup')} className="text-[11px] text-violet-400 hover:text-violet-300 cursor-pointer transition-colors flex items-center" style={{ minHeight: 44 }}>Create account →</button>
               </>
             )}
             {mode === 'signup' && (
-              <button onClick={() => setMode('signin')} className="text-[11px] text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mx-auto">Already have an account? Sign in</button>
+              <button onClick={() => setMode('signin')} className="text-[11px] text-gray-600 hover:text-gray-400 cursor-pointer transition-colors flex items-center justify-center w-full" style={{ minHeight: 44 }}>Already have an account? Sign in</button>
             )}
             {mode === 'forgot' && (
-              <button onClick={() => setMode('signin')} className="text-[11px] text-gray-600 hover:text-gray-400 cursor-pointer transition-colors mx-auto">← Back to sign in</button>
+              <button onClick={() => setMode('signin')} className="text-[11px] text-gray-600 hover:text-gray-400 cursor-pointer transition-colors flex items-center justify-center w-full" style={{ minHeight: 44 }}>← Back to sign in</button>
             )}
           </div>
         </div>

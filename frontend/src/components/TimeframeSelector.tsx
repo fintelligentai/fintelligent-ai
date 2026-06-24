@@ -28,7 +28,7 @@ export function TimeframeSelector({ selected, onChange, lockedTimeframes = [] }:
                   ? 'text-gray-700 border-white/5 bg-white/2'
                   : 'text-gray-500 border-white/8 bg-white/4 hover:bg-white/8 hover:text-gray-200 hover:border-white/12',
             ].join(' ')}
-            style={{ padding: '5px 10px' }}
+            style={{ padding: '5px 10px', minHeight: 44, minWidth: 44 }}
           >
             {tf.label}
             {locked && <span className="text-[9px] leading-none opacity-50">🔒</span>}

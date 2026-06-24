@@ -79,7 +79,7 @@ export function GatePrompt({ reason, isLoggedIn, isAdmin, onSignIn, onSettings, 
           background: 'linear-gradient(145deg, #12131e 0%, #0c0d16 100%)',
           border: '1px solid rgba(255,255,255,0.08)',
           boxShadow: '0 24px 80px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.5)',
-          maxHeight: '90vh',
+          maxHeight: 'calc(100dvh - 32px)',
         }}
       >
         {/* Header */}
@@ -90,7 +90,7 @@ export function GatePrompt({ reason, isLoggedIn, isAdmin, onSignIn, onSettings, 
               <span className="text-[12px] font-bold text-white tracking-tight">Fintelligent</span>
               <span className="text-[9px] font-bold uppercase" style={{ letterSpacing: '0.14em', color: 'rgba(0,210,168,0.5)' }}>S&D</span>
             </div>
-            <button onClick={onClose} className="text-gray-700 hover:text-gray-400 transition-colors cursor-pointer text-lg leading-none">✕</button>
+            <button onClick={onClose} className="text-gray-700 hover:text-gray-400 transition-colors cursor-pointer flex items-center justify-center" style={{ minWidth: 44, minHeight: 44, fontSize: 18 }}>✕</button>
           </div>
 
           <h2 className="text-[15px] font-bold text-white" style={{ marginBottom: 5 }}>Unlock Premium — it's free</h2>
@@ -150,20 +150,21 @@ export function GatePrompt({ reason, isLoggedIn, isAdmin, onSignIn, onSettings, 
         </div>
 
         {/* Footer — already deposited path */}
-        <div className="shrink-0" style={{ padding: '12px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-            <p className="text-[11px] text-gray-600">Already deposited with a partner?</p>
+        <div className="shrink-0" style={{ padding: '8px 24px 12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] text-gray-600">Already deposited?</p>
             <button
               onClick={handleAlreadyDeposited}
-              className="text-[11px] font-semibold text-violet-400 hover:text-violet-300 cursor-pointer transition-colors"
+              className="text-[11px] font-semibold text-violet-400 hover:text-violet-300 cursor-pointer transition-colors flex items-center"
+              style={{ minHeight: 44, paddingLeft: 12 }}
             >
-              {isLoggedIn ? 'Submit your broker ID →' : 'Sign up & submit ID →'}
+              {isLoggedIn ? 'Submit broker ID →' : 'Sign up & submit →'}
             </button>
           </div>
           <button
             onClick={onClose}
-            className="w-full text-[11px] text-gray-700 hover:text-gray-500 cursor-pointer transition-colors"
-            style={{ background: 'transparent', border: 'none' }}
+            className="w-full text-[11px] text-gray-700 hover:text-gray-500 cursor-pointer transition-colors flex items-center justify-center"
+            style={{ background: 'transparent', border: 'none', minHeight: 44 }}
           >
             Continue as guest
           </button>
