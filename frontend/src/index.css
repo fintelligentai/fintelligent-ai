@@ -20,6 +20,7 @@ body {
   font-family: system-ui, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  max-width: 100vw;
 }
 
 #root {

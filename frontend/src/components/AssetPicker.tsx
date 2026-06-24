@@ -33,8 +33,8 @@ export function AssetPicker({ selected, onChange }: Props) {
   })
 
   const searchQuery = useQuery({
-    queryKey: ['assets-search', query],
-    queryFn: () => searchAssets(query),
+    queryKey: ['assets-search', query, category],
+    queryFn: () => searchAssets(query, category),
     staleTime: 30_000,
     enabled: open && isSearching,
   })
@@ -79,7 +79,8 @@ export function AssetPicker({ selected, onChange }: Props) {
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 w-96 bg-[#0e0f18] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute top-full left-0 mt-1 bg-[#0e0f18] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden"
+          style={{ width: 'min(384px, calc(100vw - 24px))' }}>
           {/* Search input */}
           <div className="p-2 border-b border-white/8">
             <input
