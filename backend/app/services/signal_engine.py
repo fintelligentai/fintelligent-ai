@@ -22,7 +22,7 @@ Signal strength (0–100):
 from datetime import datetime, timezone
 import pandas as pd
 from app.models.zone import ZoneDetectionResult, SDZone
-from app.models.signal import TradeSignal, SignalResult, MACross
+from app.models.signal import TradeSignal, SignalResult, MACross, TrendBias
 
 SL_BUFFER_PCT = 0.003   # 0.3% buffer beyond distal for stop loss
 MA_FAST       = 50
@@ -72,6 +72,42 @@ def compute_ma_cross(df: pd.DataFrame) -> MACross | None:
     )
 
 
+def compute_trend_bias(df: pd.DataFrame) -> TrendBias | None:
+    """
+    Determines trend bias from price position relative to 50MA and 200MA.
+    - Above both  → Bullish
+    - Below both  → Bearish
+    - Between     → Neutral
+    """
+    if len(df) < MA_SLOW:
+        return None
+
+    close = df["close"]
+    ma50  = close.rolling(MA_FAST).mean()
+    ma200 = close.rolling(MA_SLOW).mean()
+
+    ma50_now  = float(ma50.iloc[-1])
+    ma200_now = float(ma200.iloc[-1])
+    price     = float(close.iloc[-1])
+
+    if pd.isna(ma50_now) or pd.isna(ma200_now):
+        return None
+
+    if price > ma50_now and price > ma200_now:
+        bias = "bullish"
+    elif price < ma50_now and price < ma200_now:
+        bias = "bearish"
+    else:
+        bias = "neutral"
+
+    return TrendBias(
+        bias=bias,
+        ma_50=round(ma50_now, 6),
+        ma_200=round(ma200_now, 6),
+        current_price=round(price, 6),
+    )
+
+
 def _strength_label(score: float) -> str:
     if score >= 75:
         return "Very Strong"
@@ -111,6 +147,7 @@ def _build_signal(
     current_price: float,
     atr: float,
     rr_ratio: float,
+    bias: str = "neutral",
 ) -> TradeSignal:
     is_demand = zone.zone_type == "demand"
     signal_type = "BUY" if is_demand else "SELL"
@@ -132,6 +169,13 @@ def _build_signal(
         zone.strength_score, distance_to_entry, atr
     )
 
+    if bias == "neutral":
+        trend_aligned = "neutral"
+    elif (signal_type == "BUY" and bias == "bullish") or (signal_type == "SELL" and bias == "bearish"):
+        trend_aligned = "aligned"
+    else:
+        trend_aligned = "counter"
+
     return TradeSignal(
         signal_type=signal_type,
         zone_id=zone.zone_id,
@@ -149,6 +193,7 @@ def _build_signal(
         zone_distal=zone.distal,
         distance_to_entry=round(distance_to_entry, 6),
         distance_pct=distance_pct,
+        trend_aligned=trend_aligned,
     )
 
 
@@ -165,21 +210,23 @@ def compute_signals(
     current_price = zones.current_price
     atr = zones.atr_14
 
+    ma_cross    = compute_ma_cross(df)    if df is not None else None
+    trend_bias  = compute_trend_bias(df)  if df is not None else None
+    bias_str    = trend_bias.bias if trend_bias else "neutral"
+
     buy_signals = [
-        _build_signal(z, current_price, atr, rr_ratio)
+        _build_signal(z, current_price, atr, rr_ratio, bias_str)
         for z in zones.demand_zones
         if z.is_active
     ]
     sell_signals = [
-        _build_signal(z, current_price, atr, rr_ratio)
+        _build_signal(z, current_price, atr, rr_ratio, bias_str)
         for z in zones.supply_zones
         if z.is_active
     ]
 
     buy_signals.sort(key=lambda s: -s.signal_strength)
     sell_signals.sort(key=lambda s: -s.signal_strength)
-
-    ma_cross = compute_ma_cross(df) if df is not None else None
 
     return SignalResult(
         asset=zones.asset,
@@ -191,4 +238,5 @@ def compute_signals(
         buy_signals=buy_signals,
         sell_signals=sell_signals,
         ma_cross=ma_cross,
+        trend_bias=trend_bias,
     )

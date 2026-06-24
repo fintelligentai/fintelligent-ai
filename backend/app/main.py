@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import zones, ohlcv, admin, assets, signals
-from app.api.routes import scanner, commentary, backtest, political_trades, insider_trades, ipo_calendar
+from app.api.routes import scanner, commentary, backtest, political_trades, insider_trades, ipo_calendar, macro_events
 from app.db.commentary import init_db
 from app.core.config import settings
 
@@ -45,6 +45,7 @@ app.include_router(political_trades.router, prefix="/api/v1")
 app.include_router(insider_trades.router,  prefix="/api/v1")
 app.include_router(ipo_calendar.router,    prefix="/api/v1")
 app.include_router(admin.router,           prefix="/api/v1")
+app.include_router(macro_events.router,    prefix="/api/v1")
 
 
 @app.get("/health")

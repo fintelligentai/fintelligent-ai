@@ -23,6 +23,7 @@ export interface TradeSignal {
   zone_distal: number
   distance_to_entry: number
   distance_pct: number
+  trend_aligned: 'aligned' | 'counter' | 'neutral'
 }
 
 export interface MACross {
@@ -30,6 +31,13 @@ export interface MACross {
   ma_fast: number
   ma_slow: number
   bars_since_cross: number
+}
+
+export interface TrendBias {
+  bias: 'bullish' | 'bearish' | 'neutral'
+  ma_50: number
+  ma_200: number
+  current_price: number
 }
 
 export interface SignalResult {
@@ -42,4 +50,5 @@ export interface SignalResult {
   buy_signals: TradeSignal[]
   sell_signals: TradeSignal[]
   ma_cross?: MACross
+  trend_bias?: TrendBias
 }

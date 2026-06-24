@@ -259,6 +259,33 @@ export async function fetchPoliticalTradesForTicker(ticker: string, limit = 50):
   return data
 }
 
+export interface MacroImpact {
+  label: string
+  ticker: string
+  direction: 'bullish' | 'bearish' | 'watch'
+  reason: string
+}
+
+export interface MacroEvent {
+  title: string
+  source: string
+  url: string
+  published_at: string
+  direction_hint: string
+  impacts: MacroImpact[]
+}
+
+export interface MacroEventsResult {
+  events: MacroEvent[]
+  fetched_at: string
+  error: string | null
+}
+
+export async function fetchMacroEvents(limit = 15): Promise<MacroEventsResult> {
+  const { data } = await http.get<MacroEventsResult>('/macro-events', { params: { limit } })
+  return data
+}
+
 export async function fetchScannerResults(
   category?: string,
   signal_type?: string,

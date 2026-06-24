@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     max_zone_lookback: int = 365
 
     anthropic_api_key: str = ""
+    newsapi_key: str = ""
     allowed_origins: str = "http://localhost:5173,http://localhost:3000"
 
     model_config = {"env_file": ".env"}

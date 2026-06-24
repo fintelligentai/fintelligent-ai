@@ -22,6 +22,8 @@ import { AcknowledgmentModal, isAcknowledged } from './components/Acknowledgment
 import { InsiderTradesView } from './components/InsiderTradesView'
 import { InsiderTradesPanel } from './components/InsiderTradesPanel'
 import { IPOCalendarView } from './components/IPOCalendarView'
+import { MacroEventsView } from './components/MacroEventsView'
+import { TrendBiasBadge } from './components/TrendBiasBadge'
 // import { CommentaryPanel } from './components/CommentaryPanel'
 import type { OHLCVBar } from './types/zone'
 import type { ZoneFilterState } from './components/ZoneFilters'
@@ -51,6 +53,7 @@ export default function App() {
   const [scannerOpen, setScannerOpen]       = useState(false)
   const [congressOpen, setCongressOpen]     = useState(false)
   const [ipoOpen, setIpoOpen]               = useState(false)
+  const [macroOpen, setMacroOpen]           = useState(false)
   const [sidebarTab, setSidebarTab]         = useState<'zones' | 'watchlist' | 'congress'>('zones')
   const [showHtf, setShowHtf]               = useState(true)
   const { watchlist, toggle, remove, isPinned } = useWatchlist()
@@ -131,10 +134,12 @@ export default function App() {
 
   const [bottomSheet, setBottomSheet] = useState(false)
 
+  const closeAllNav = () => { setScannerOpen(false); setCongressOpen(false); setIpoOpen(false); setMacroOpen(false) }
   const navItems = [
-    { key: 'scanner',  label: 'Scanner',  icon: '⚡', active: scannerOpen,  onClick: () => gate('Scan 500+ assets across all markets for active supply & demand signals.', () => { setScannerOpen(v => !v); setCongressOpen(false); setIpoOpen(false) }) },
-    { key: 'insiders', label: 'Insiders', icon: '🕵️', active: congressOpen, onClick: () => gate('View significant insider buying and selling activity from SEC filings.', () => { setCongressOpen(v => !v); setScannerOpen(false); setIpoOpen(false) }) },
-    { key: 'ipos',     label: 'IPOs',     icon: '🚀', active: ipoOpen,      onClick: () => gate('Track upcoming IPOs and their expected market significance.', () => { setIpoOpen(v => !v); setScannerOpen(false); setCongressOpen(false) }) },
+    { key: 'scanner',  label: 'Scanner',       icon: '⚡', active: scannerOpen,  onClick: () => gate('Scan 500+ assets across all markets for active supply & demand signals.', () => { closeAllNav(); setScannerOpen(v => !v) }) },
+    { key: 'insiders', label: 'Insiders',       icon: '🕵️', active: congressOpen, onClick: () => gate('View significant insider buying and selling activity from SEC filings.', () => { closeAllNav(); setCongressOpen(v => !v) }) },
+    { key: 'ipos',     label: 'IPOs',           icon: '🚀', active: ipoOpen,      onClick: () => gate('Track upcoming IPOs and their expected market significance.', () => { closeAllNav(); setIpoOpen(v => !v) }) },
+    { key: 'macro',    label: 'Market Events',  icon: '🌍', active: macroOpen,    onClick: () => gate('Track macro events and their impact on asset prices in real time.', () => { closeAllNav(); setMacroOpen(v => !v) }) },
   ]
 
   return (
@@ -177,13 +182,14 @@ export default function App() {
             {isPremium && isPinned(ticker) ? '★' : '☆'}
           </button>
 
-          {/* Price */}
+          {/* Price + Trend Bias */}
           {currentPrice != null && (
-            <div className="flex items-center gap-1.5 leading-none shrink-0 min-w-0">
+            <div className="flex items-center gap-2 leading-none shrink-0 min-w-0">
               <span className="text-[12px] font-mono font-medium text-gray-200 tracking-tight truncate">
                 {currentPrice.toLocaleString(undefined, { maximumFractionDigits: 5 })}
               </span>
               {zonesQuery.isFetching && <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse shrink-0" />}
+              <TrendBiasBadge trendBias={signalsQuery.data?.trend_bias} ticker={asset.label} />
             </div>
           )}
 
@@ -275,8 +281,15 @@ export default function App() {
         </div>
       )}
 
+      {/* Macro market events full-screen view */}
+      {macroOpen && (
+        <div className="flex-1 overflow-hidden min-h-0">
+          <MacroEventsView />
+        </div>
+      )}
+
       {/* Main content — stacks on mobile, side-by-side on md+ */}
-      <div className={`flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative ${scannerOpen || congressOpen || ipoOpen ? 'hidden' : ''}`}>
+      <div className={`flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative ${scannerOpen || congressOpen || ipoOpen || macroOpen ? 'hidden' : ''}`}>
         {/* Chart + signals column */}
         <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto md:overflow-hidden md:pb-0" style={{ paddingBottom: 'calc(48px + env(safe-area-inset-bottom, 0px))' }}>
           {/* Chart — fixed height on mobile, flex-1 on desktop */}

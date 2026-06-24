@@ -24,6 +24,7 @@ class TradeSignal(BaseModel):
     zone_distal: float
     distance_to_entry: float    # absolute distance from current price to entry
     distance_pct: float         # % distance from current price to entry
+    trend_aligned: Literal["aligned", "counter", "neutral"] = "neutral"
 
 
 class MACross(BaseModel):
@@ -31,6 +32,13 @@ class MACross(BaseModel):
     ma_fast: float          # 50-period MA value
     ma_slow: float          # 200-period MA value
     bars_since_cross: int   # how many bars ago the cross occurred (0 = just crossed)
+
+
+class TrendBias(BaseModel):
+    bias: Literal["bullish", "bearish", "neutral"]
+    ma_50: float
+    ma_200: float
+    current_price: float
 
 
 class SignalResult(BaseModel):
@@ -43,3 +51,4 @@ class SignalResult(BaseModel):
     buy_signals: list[TradeSignal]
     sell_signals: list[TradeSignal]
     ma_cross: Optional[MACross] = None
+    trend_bias: Optional[TrendBias] = None

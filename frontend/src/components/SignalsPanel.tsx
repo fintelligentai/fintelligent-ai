@@ -39,6 +39,27 @@ function fmt(n: number): string {
   return n.toLocaleString(undefined, { maximumFractionDigits: 6 })
 }
 
+function TrendAlignmentTag({ aligned }: { aligned: TradeSignal['trend_aligned'] }) {
+  if (aligned === 'neutral') return null
+  const isAligned = aligned === 'aligned'
+  return (
+    <span
+      style={{
+        padding: '2px 7px',
+        borderRadius: 5,
+        fontSize: 10,
+        fontWeight: 600,
+        letterSpacing: '0.03em',
+        background: isAligned ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+        border: `1px solid ${isAligned ? 'rgba(16,185,129,0.28)' : 'rgba(245,158,11,0.28)'}`,
+        color: isAligned ? '#34d399' : '#fbbf24',
+      }}
+    >
+      {isAligned ? '✓ Trend Confirmed' : '⚠ Counter-trend'}
+    </span>
+  )
+}
+
 function SignalCard({ signal, isSelected, patternStats, patternStatsLoading }: {
   signal: TradeSignal
   isSelected: boolean
@@ -54,7 +75,7 @@ function SignalCard({ signal, isSelected, patternStats, patternStatsLoading }: {
   return (
     <div style={{ ...cardStyle, padding: '18px' }}>
       {/* Top row: direction badge + pattern + strength */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span
             className={[
@@ -80,6 +101,13 @@ function SignalCard({ signal, isSelected, patternStats, patternStatsLoading }: {
           </span>
         </div>
       </div>
+
+      {/* Trend alignment tag */}
+      {signal.trend_aligned !== 'neutral' && (
+        <div style={{ marginBottom: 12 }}>
+          <TrendAlignmentTag aligned={signal.trend_aligned} />
+        </div>
+      )}
 
       {/* Dominant: Entry price */}
       <div className="mb-4">
