@@ -189,7 +189,9 @@ export default function App() {
                 {currentPrice.toLocaleString(undefined, { maximumFractionDigits: 5 })}
               </span>
               {zonesQuery.isFetching && <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse shrink-0" />}
-              <TrendBiasBadge trendBias={signalsQuery.data?.trend_bias} ticker={asset.label} />
+              <span className="hidden sm:flex">
+                <TrendBiasBadge trendBias={signalsQuery.data?.trend_bias} ticker={asset.label} />
+              </span>
             </div>
           )}
 
