@@ -224,8 +224,8 @@ export default function App() {
           )}
         </div>
 
-        {/* Row 2: Timeframe + Nav modules */}
-        <div className="flex items-center gap-2 px-3 sm:px-5 pb-2 border-t border-white/4" style={{ paddingTop: 6 }}>
+        {/* Row 2: Timeframe + Nav modules — entire row scrolls horizontally */}
+        <div className="flex items-center gap-2 border-t border-white/4 overflow-x-auto scrollbar-none" style={{ padding: '6px 12px 8px', WebkitOverflowScrolling: 'touch' }}>
           <TimeframeSelector
             selected={timeframe}
             onChange={(tf) => gate('Switch to Weekly and Monthly timeframes for broader market perspective.', () => handleTimeframeChange(tf))}
@@ -234,26 +234,23 @@ export default function App() {
 
           <div className="w-px h-4 bg-white/8 shrink-0" />
 
-          {/* Nav modules */}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto">
-            {navItems.map(({ key, label, icon, active, onClick }) => (
-              <button key={key} onClick={onClick}
-                className={[
-                  'flex items-center gap-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer border shrink-0',
-                  active
-                    ? 'bg-violet-600 text-white border-violet-500/60'
-                    : isPremium
-                      ? 'text-gray-400 border-white/8 bg-white/4 hover:bg-white/8 hover:text-gray-200'
-                      : 'text-gray-700 border-white/5 bg-white/2 opacity-60',
-                ].join(' ')}
-                style={{ padding: '5px 10px', minHeight: 30 }}
-              >
-                <span>{icon}</span>
-                <span>{label}</span>
-                {!isPremium && <span className="text-[9px] opacity-60">🔒</span>}
-              </button>
-            ))}
-          </div>
+          {navItems.map(({ key, label, icon, active, onClick }) => (
+            <button key={key} onClick={onClick}
+              className={[
+                'flex items-center gap-1.5 rounded-lg text-[11px] font-semibold tracking-wide transition-all cursor-pointer border shrink-0',
+                active
+                  ? 'bg-violet-600 text-white border-violet-500/60'
+                  : isPremium
+                    ? 'text-gray-400 border-white/8 bg-white/4 hover:bg-white/8 hover:text-gray-200'
+                    : 'text-gray-700 border-white/5 bg-white/2 opacity-60',
+              ].join(' ')}
+              style={{ padding: '5px 10px', minHeight: 30 }}
+            >
+              <span>{icon}</span>
+              <span>{label}</span>
+              {!isPremium && <span className="text-[9px] opacity-60">🔒</span>}
+            </button>
+          ))}
         </div>
       </header>
 
@@ -281,7 +278,7 @@ export default function App() {
       {/* Main content — stacks on mobile, side-by-side on md+ */}
       <div className={`flex flex-col md:flex-row flex-1 overflow-hidden min-h-0 relative ${scannerOpen || congressOpen || ipoOpen ? 'hidden' : ''}`}>
         {/* Chart + signals column */}
-        <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto md:overflow-hidden">
+        <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto md:overflow-hidden md:pb-0" style={{ paddingBottom: 'calc(48px + env(safe-area-inset-bottom, 0px))' }}>
           {/* Chart — fixed height on mobile, flex-1 on desktop */}
           <main className="relative shrink-0 min-h-[240px] md:min-h-0 md:flex-1">
             {ohlcvQuery.isLoading && (
@@ -321,38 +318,10 @@ export default function App() {
             ticker={ticker}
           />
 
-          {/* Mobile zones toggle button */}
-          <div className="md:hidden shrink-0 border-t border-white/6 bg-[#09090e]">
-            <button
-              onClick={() => setBottomSheet(v => !v)}
-              className="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-widest text-gray-500 cursor-pointer"
-              style={{ padding: '12px 16px', minHeight: 44 }}
-            >
-              <span>Zones & Watchlist</span>
-              <span style={{ fontSize: 16 }}>{bottomSheet ? '▼' : '▲'}</span>
-            </button>
-          </div>
         </div>
 
-        {/* Zone / Watchlist sidebar — desktop: fixed right panel, mobile: slide-up sheet */}
-        <aside className={[
-          'shrink-0 border-white/6 flex flex-col bg-[#09090e]',
-          // Desktop: always visible on the right
-          'md:w-72 md:border-l md:border-t-0 md:max-h-none md:relative md:translate-y-0',
-          // Mobile: slide-up sheet from bottom, shown when bottomSheet=true
-          bottomSheet
-            ? 'fixed md:static bottom-0 left-0 right-0 z-40 border-t rounded-t-2xl'
-            : 'hidden md:flex',
-        ].join(' ')}
-          style={{ maxHeight: bottomSheet ? '65vh' : undefined }}
-        >
-          {/* Mobile drag handle */}
-          {bottomSheet && (
-            <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 rounded-full bg-white/20" />
-            </div>
-          )}
-
+        {/* Zone / Watchlist sidebar — desktop only (flex column in main layout) */}
+        <aside className="hidden md:flex shrink-0 w-72 border-l border-white/6 flex-col bg-[#09090e]">
           {/* Tab toggle */}
           <div className="flex shrink-0 border-b border-white/6">
             {(['zones', 'watchlist', 'congress'] as const).map((tab) => {
@@ -441,15 +410,117 @@ export default function App() {
           </div>
         </aside>
 
-        {/* Backdrop for mobile bottom sheet */}
-        {bottomSheet && (
-          <div
-            className="md:hidden fixed inset-0 z-30 bg-black/40"
-            onClick={() => setBottomSheet(false)}
-          />
-        )}
       </div>
     </div>
+
+    {/* ── Mobile bottom bar + sheet (outside overflow-hidden wrapper) ── */}
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#09090e] border-t border-white/10"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      <button
+        onClick={() => setBottomSheet(v => !v)}
+        className="w-full flex items-center justify-between cursor-pointer"
+        style={{ padding: '11px 20px', minHeight: 48 }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Zones</span>
+          {zonesQuery.data && (
+            <span className="text-[10px] text-gray-600">{zonesQuery.data.zones?.length ?? 0} zones</span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {(['zones', 'watchlist', 'congress'] as const).map(tab => (
+            <div
+              key={tab}
+              onClick={e => { e.stopPropagation(); setSidebarTab(tab); setBottomSheet(true) }}
+              className="text-[10px] font-semibold cursor-pointer transition-colors"
+              style={{ color: sidebarTab === tab && bottomSheet ? '#c4b5fd' : '#4b5563', padding: '4px 0' }}
+            >
+              {tab === 'zones' ? 'Zones' : tab === 'watchlist' ? '★ Watch' : '🕵️'}
+            </div>
+          ))}
+          <span className="text-gray-600" style={{ fontSize: 14 }}>{bottomSheet ? '▼' : '▲'}</span>
+        </div>
+      </button>
+    </div>
+
+    {/* Mobile bottom sheet */}
+    {bottomSheet && (
+      <>
+        <div className="md:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setBottomSheet(false)} />
+        <aside className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex flex-col bg-[#09090e] border-t border-white/10 rounded-t-2xl"
+          style={{ maxHeight: '65vh', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-white/20" />
+          </div>
+          <div className="flex shrink-0 border-b border-white/6">
+            {(['zones', 'watchlist', 'congress'] as const).map((tab) => {
+              const locked = !isPremium && (tab === 'watchlist' || tab === 'congress')
+              return (
+                <button
+                  key={tab}
+                  onClick={() => locked
+                    ? gate(tab === 'watchlist'
+                        ? 'Save and manage your favourite assets in your personal watchlist.'
+                        : 'View insider trading activity for the current asset.')
+                    : setSidebarTab(tab)
+                  }
+                  className={[
+                    'flex-1 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors cursor-pointer',
+                    sidebarTab === tab
+                      ? 'text-gray-200 border-b-2 border-violet-500 -mb-px'
+                      : locked ? 'text-gray-700' : 'text-gray-600 hover:text-gray-400',
+                  ].join(' ')}
+                  style={{ padding: '12px 4px', minHeight: 44 }}
+                >
+                  {tab === 'watchlist'
+                    ? `★ Watchlist${isPremium && watchlist.length ? ` (${watchlist.length})` : ''}${locked ? ' 🔒' : ''}`
+                    : tab === 'congress' ? `🕵️ Insiders${locked ? ' 🔒' : ''}` : 'Zones'}
+                </button>
+              )
+            })}
+          </div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ padding: '0 14px 16px' }}>
+            {sidebarTab === 'zones' ? (
+              <>
+                <div style={{ height: 12 }} />
+                {htfTimeframe && (
+                  <button
+                    onClick={() => setShowHtf(v => !v)}
+                    className={['w-full flex items-center justify-between rounded text-xs border transition-colors cursor-pointer',
+                      showHtf ? 'bg-violet-500/12 border-violet-500/30 text-violet-300' : 'bg-white/3 border-white/8 text-gray-600 hover:text-gray-400'].join(' ')}
+                    style={{ padding: '8px 10px', marginBottom: 12 }}
+                  >
+                    <span><span className="font-semibold">HTF Zones</span><span className="ml-1.5 text-gray-600">({htfTimeframe === '1wk' ? 'Weekly' : 'Monthly'})</span></span>
+                    <span>{showHtf ? 'ON' : 'OFF'}</span>
+                  </button>
+                )}
+                <ZoneSidebar
+                  data={zonesQuery.data}
+                  isLoading={zonesQuery.isLoading}
+                  selectedZoneId={selectedZoneId}
+                  onSelectZone={setSelectedZoneId}
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  patternStats={backtestQuery.data?.patterns}
+                  patternStatsLoading={backtestQuery.isLoading}
+                />
+              </>
+            ) : sidebarTab === 'congress' ? (
+              <div className="pt-2"><InsiderTradesPanel ticker={ticker} /></div>
+            ) : (
+              <div className="pt-3">
+                <WatchlistPanel
+                  watchlist={watchlist}
+                  currentTicker={ticker}
+                  onSelect={(a) => { handleAssetChange(a); setSidebarTab('zones'); setBottomSheet(false) }}
+                  onRemove={remove}
+                />
+              </div>
+            )}
+          </div>
+        </aside>
+      </>
+    )}
 
     {authOpen     && <AuthModal onClose={() => setAuthOpen(false)} />}
     {settingsOpen && <AccountSettingsModal onClose={() => setSettingsOpen(false)} />}
