@@ -1,8 +1,18 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
+import requests
 from app.core.assets import TICKER_MAP
 from app.services import cache
+
+# Yahoo Finance blocks datacenter IPs without a browser user-agent.
+# Pass a custom session with browser headers to all yfinance calls.
+_SESSION = requests.Session()
+_SESSION.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+})
 
 
 TIMEFRAME_MAP = {
@@ -37,7 +47,7 @@ def fetch_ohlcv(asset: str, timeframe: str = "1d") -> pd.DataFrame:
         return cached
 
     params = TIMEFRAME_MAP[timeframe]
-    ticker = yf.Ticker(asset)
+    ticker = yf.Ticker(asset, session=_SESSION)
     df = ticker.history(interval=params["interval"], start=params["start"])
 
     if df.empty:
