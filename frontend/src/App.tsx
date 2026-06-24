@@ -136,10 +136,10 @@ export default function App() {
 
   const closeAllNav = () => { setScannerOpen(false); setCongressOpen(false); setIpoOpen(false); setMacroOpen(false) }
   const navItems = [
-    { key: 'scanner',  label: 'Scanner',       icon: '⚡', active: scannerOpen,  onClick: () => gate('Scan 500+ assets across all markets for active supply & demand signals.', () => { closeAllNav(); setScannerOpen(v => !v) }) },
-    { key: 'insiders', label: 'Insiders',       icon: '🕵️', active: congressOpen, onClick: () => gate('View significant insider buying and selling activity from SEC filings.', () => { closeAllNav(); setCongressOpen(v => !v) }) },
-    { key: 'ipos',     label: 'IPOs',           icon: '🚀', active: ipoOpen,      onClick: () => gate('Track upcoming IPOs and their expected market significance.', () => { closeAllNav(); setIpoOpen(v => !v) }) },
-    { key: 'macro',    label: 'Market Events',  icon: '🌍', active: macroOpen,    onClick: () => gate('Track macro events and their impact on asset prices in real time.', () => { closeAllNav(); setMacroOpen(v => !v) }) },
+    { key: 'scanner',  label: 'Scanner',       icon: '⚡', active: scannerOpen,  onClick: () => gate('Scan 500+ assets across all markets for active supply & demand signals.', () => { const was = scannerOpen;  closeAllNav(); if (!was) setScannerOpen(true) }) },
+    { key: 'insiders', label: 'Insiders',       icon: '🕵️', active: congressOpen, onClick: () => gate('View significant insider buying and selling activity from SEC filings.', () => { const was = congressOpen; closeAllNav(); if (!was) setCongressOpen(true) }) },
+    { key: 'ipos',     label: 'IPOs',           icon: '🚀', active: ipoOpen,      onClick: () => gate('Track upcoming IPOs and their expected market significance.', () => { const was = ipoOpen;      closeAllNav(); if (!was) setIpoOpen(true) }) },
+    { key: 'macro',    label: 'Market Events',  icon: '🌍', active: macroOpen,    onClick: () => gate('Track macro events and their impact on asset prices in real time.', () => { const was = macroOpen;     closeAllNav(); if (!was) setMacroOpen(true) }) },
   ]
 
   return (
