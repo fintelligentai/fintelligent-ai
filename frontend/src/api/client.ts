@@ -2,7 +2,8 @@ import axios from 'axios'
 import type { ZoneDetectionResult } from '../types/zone'
 import type { Asset, AssetCategory, SignalResult } from '../types/asset'
 
-const http = axios.create({ baseURL: '/api/v1' })
+const BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : '/api/v1'
+const http = axios.create({ baseURL: BASE })
 
 export async function fetchZones(asset: string, timeframe = '1d'): Promise<ZoneDetectionResult> {
   const { data } = await http.get<ZoneDetectionResult>(`/zones/${encodeURIComponent(asset)}`, {
