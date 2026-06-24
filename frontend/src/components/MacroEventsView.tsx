@@ -145,11 +145,7 @@ export function MacroEventsView() {
 
         {data?.error && !data.events.length && (
           <div className="text-center py-12">
-            <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>
-              {data.error.includes('NEWSAPI_KEY')
-                ? 'NewsAPI key not configured. Add NEWSAPI_KEY to your backend environment variables.'
-                : data.error}
-            </p>
+            <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>{data.error}</p>
           </div>
         )}
 
