@@ -280,7 +280,7 @@ export default function App() {
         {/* Chart + signals column */}
         <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-y-auto md:overflow-hidden md:pb-0" style={{ paddingBottom: 'calc(48px + env(safe-area-inset-bottom, 0px))' }}>
           {/* Chart — fixed height on mobile, flex-1 on desktop */}
-          <main className="relative shrink-0 min-h-[240px] md:min-h-0 md:flex-1">
+          <main className="relative shrink-0 md:min-h-0 md:flex-1" style={{ minHeight: 'clamp(260px, 42svh, 380px)' }}>
             {ohlcvQuery.isLoading && (
               <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm">
                 Loading chart…

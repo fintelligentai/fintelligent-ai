@@ -71,6 +71,44 @@ function ScorePill({ score }: { score: number }) {
   return <span className="text-[12px] font-mono text-gray-600">{score}</span>
 }
 
+/* Mobile card — shown below sm breakpoint */
+function HitCard({ hit, onSelect }: { hit: ScanHit; onSelect: () => void }) {
+  const isBuy = hit.signal_type === 'BUY'
+  return (
+    <button
+      onClick={onSelect}
+      className="w-full text-left cursor-pointer transition-colors"
+      style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', minHeight: 64 }}
+    >
+      <div className="flex items-center justify-between" style={{ marginBottom: 5 }}>
+        <div className="flex items-center gap-2 min-w-0">
+          <span
+            className={['text-[10px] font-bold rounded border shrink-0',
+              isBuy ? 'bg-emerald-500/12 text-emerald-400 border-emerald-500/20'
+                     : 'bg-red-500/12 text-red-400 border-red-500/20'].join(' ')}
+            style={{ padding: '2px 7px' }}
+          >{hit.signal_type}</span>
+          <span className="text-[13px] font-semibold text-white truncate">{hit.label}</span>
+          <span className="text-[10px] text-gray-600 font-mono shrink-0">{hit.formation_pattern}</span>
+        </div>
+        <ScorePill score={hit.score} />
+      </div>
+      <div className="flex items-center gap-4">
+        <div>
+          <span className="text-[9px] text-gray-700 uppercase tracking-widest">Entry </span>
+          <span className="text-[12px] font-mono text-gray-300">{fmt(hit.entry)}</span>
+        </div>
+        <div>
+          <span className="text-[9px] text-gray-700 uppercase tracking-widest">SL </span>
+          <span className="text-[11px] font-mono text-red-400/70">{fmt(hit.stop_loss)}</span>
+        </div>
+        <DistanceBadge pct={hit.distance_pct} />
+      </div>
+    </button>
+  )
+}
+
+/* Desktop table row — shown sm and above */
 function HitRow({ hit, index, onSelect }: { hit: ScanHit; index: number; onSelect: () => void }) {
   const isBuy = hit.signal_type === 'BUY'
   const isEven = index % 2 === 0
@@ -86,35 +124,23 @@ function HitRow({ hit, index, onSelect }: { hit: ScanHit; index: number; onSelec
       onMouseEnter={e => (e.currentTarget.style.background = 'rgba(200,65,20,0.055)')}
       onMouseLeave={e => (e.currentTarget.style.background = isEven ? 'transparent' : 'rgba(255,255,255,0.013)')}
     >
-      {/* Asset name + ticker */}
       <div className="w-36 shrink-0">
         <div className="text-[13px] font-semibold text-white truncate leading-tight">{hit.label}</div>
         <div className="text-[10px] text-gray-600 font-mono mt-0.5">{hit.asset}</div>
       </div>
-
-      {/* BUY / SELL badge */}
       <span
-        className={[
-          'text-[10px] font-bold rounded-md shrink-0 border tracking-wide',
-          isBuy
-            ? 'bg-emerald-500/12 text-emerald-400 border-emerald-500/20'
-            : 'bg-red-500/12 text-red-400 border-red-500/20',
-        ].join(' ')}
+        className={['text-[10px] font-bold rounded-md shrink-0 border tracking-wide',
+          isBuy ? 'bg-emerald-500/12 text-emerald-400 border-emerald-500/20'
+                : 'bg-red-500/12 text-red-400 border-red-500/20'].join(' ')}
         style={{ padding: '3px 8px' }}
-      >
-        {hit.signal_type}
-      </span>
-
-      {/* Pattern */}
+      >{hit.signal_type}</span>
       <span className="text-[10px] text-gray-600 font-mono w-8 shrink-0">{hit.formation_pattern}</span>
-
-      {/* Entry / SL / TP */}
       <div className="flex items-start gap-4 flex-1 min-w-0">
         <div className="min-w-0">
           <div className="text-[9px] text-gray-700 uppercase tracking-widest mb-0.5">Entry</div>
           <div className="text-[12px] font-mono text-gray-300 truncate">{fmt(hit.entry)}</div>
         </div>
-        <div className="min-w-0 hidden sm:block">
+        <div className="min-w-0">
           <div className="text-[9px] text-gray-700 uppercase tracking-widest mb-0.5">SL</div>
           <div className="text-[12px] font-mono text-red-400/70 truncate">{fmt(hit.stop_loss)}</div>
         </div>
@@ -123,34 +149,22 @@ function HitRow({ hit, index, onSelect }: { hit: ScanHit; index: number; onSelec
           <div className="text-[12px] font-mono text-emerald-400/70 truncate">{fmt(hit.take_profit)}</div>
         </div>
       </div>
-
-      {/* Distance */}
-      <div className="shrink-0 hidden sm:block">
+      <div className="shrink-0">
         <div className="text-[9px] text-gray-700 uppercase tracking-widest mb-1">Dist.</div>
         <DistanceBadge pct={hit.distance_pct} />
       </div>
-
-      {/* Strength */}
       <div className="shrink-0 w-24 hidden md:block">
         <div className="flex items-center justify-between mb-1">
-          <span className={`text-[10px] font-medium ${STRENGTH_COLOR[hit.strength_label]}`}>
-            {hit.strength_label}
-          </span>
+          <span className={`text-[10px] font-medium ${STRENGTH_COLOR[hit.strength_label]}`}>{hit.strength_label}</span>
           <span className="text-[10px] text-gray-700 font-mono">{hit.signal_strength}%</span>
         </div>
         <div className="h-px rounded-full" style={{ background: 'rgba(255,100,40,0.10)' }}>
-          <div
-            className={`h-px rounded-full ${STRENGTH_BAR[hit.strength_label]}`}
-            style={{ width: `${hit.signal_strength}%` }}
-          />
+          <div className={`h-px rounded-full ${STRENGTH_BAR[hit.strength_label]}`} style={{ width: `${hit.signal_strength}%` }} />
         </div>
       </div>
-
-      {/* Score */}
       <div className="shrink-0 w-14 text-right hidden lg:block">
         <ScorePill score={hit.score} />
       </div>
-
       <span className="text-gray-700 group-hover:text-gray-400 transition-colors shrink-0 text-xs">›</span>
     </button>
   )
@@ -197,7 +211,7 @@ export function ScannerView({ onSelectAsset, onClose }: Props) {
           <button
             onClick={onClose}
             className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-200 transition-colors cursor-pointer border border-white/8 rounded-lg bg-white/4 hover:bg-white/8"
-            style={{ padding: '4px 10px' }}
+            style={{ padding: '4px 10px', minHeight: 44 }}
           >
             <span>←</span>
             <span>Chart</span>
@@ -234,7 +248,7 @@ export function ScannerView({ onSelectAsset, onClose }: Props) {
                     ? 'text-white bg-white/10 border border-white/14'
                     : 'text-gray-600 hover:text-gray-300',
                 ].join(' ')}
-                style={{ padding: '4px 9px', minHeight: 30 }}
+                style={{ padding: '4px 9px', minHeight: 44 }}
               >
                 {label}
               </button>
@@ -271,14 +285,14 @@ export function ScannerView({ onSelectAsset, onClose }: Props) {
         </div>
       </div>
 
-      {/* ── Column headers ── */}
-      <div className="flex items-center gap-3 px-5 py-2 border-b shrink-0"
+      {/* ── Column headers — desktop only ── */}
+      <div className="hidden sm:flex items-center gap-3 px-5 py-2 border-b shrink-0"
         style={{ borderColor: 'rgba(200,65,20,0.10)', background: 'rgba(10,11,19,0.7)' }}>
         <div className="w-36 shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Asset</div>
         <div className="w-12 shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Type</div>
         <div className="w-8 shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Pat.</div>
         <div className="flex-1 text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Entry / SL / TP</div>
-        <div className="w-16 shrink-0 hidden sm:block text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Dist.</div>
+        <div className="w-16 shrink-0 text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Dist.</div>
         <div className="w-24 shrink-0 hidden md:block text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Strength</div>
         <div className="w-14 shrink-0 text-right hidden lg:block text-[9px] font-bold uppercase tracking-[0.14em] text-gray-700">Score</div>
         <div className="w-3 shrink-0" />
@@ -327,12 +341,16 @@ export function ScannerView({ onSelectAsset, onClose }: Props) {
         )}
 
         {!isLoading && results.length > 0 && results.map((hit, i) => (
-          <HitRow
-            key={`${hit.asset}-${hit.signal_type}-${i}`}
-            hit={hit}
-            index={i}
-            onSelect={() => handleSelect(hit)}
-          />
+          <div key={`${hit.asset}-${hit.signal_type}-${i}`}>
+            {/* Mobile card */}
+            <div className="sm:hidden">
+              <HitCard hit={hit} onSelect={() => handleSelect(hit)} />
+            </div>
+            {/* Desktop row */}
+            <div className="hidden sm:block">
+              <HitRow hit={hit} index={i} onSelect={() => handleSelect(hit)} />
+            </div>
+          </div>
         ))}
       </div>
 
