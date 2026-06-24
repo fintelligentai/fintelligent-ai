@@ -271,12 +271,12 @@ def detect_zones(
         impulse_ratio = settings.impulse_move_atr_ratio
 
         # Determine the leg IN to the base (what happened before the base)
-        leg_in_start = max(0, base_start - 5)  # look back up to 5 candles
+        leg_in_start = max(0, base_start - 15)  # look back up to 15 candles
         leg_in_bullish = _is_bullish_impulse(df, leg_in_start, base_start, atr_at_base, impulse_ratio)
         leg_in_bearish = _is_bearish_impulse(df, leg_in_start, base_start, atr_at_base, impulse_ratio)
 
         # Determine the leg OUT from the base (what happens after the base)
-        leg_out_end = min(n - 1, base_end + 5)  # look forward up to 5 candles
+        leg_out_end = min(n - 1, base_end + 15)  # look forward up to 15 candles
         leg_out_bullish = _is_bullish_impulse(df, base_end, leg_out_end, atr_at_base, impulse_ratio)
         leg_out_bearish = _is_bearish_impulse(df, base_end, leg_out_end, atr_at_base, impulse_ratio)
 
