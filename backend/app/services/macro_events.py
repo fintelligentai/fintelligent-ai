@@ -1,22 +1,27 @@
 """
 Macro Market Events service — RSS-based, no API key required.
 
-Sources:
-  - Google News RSS (keyword-searchable, real-time)
-  - Reuters business/markets RSS
-  - CNBC markets RSS
-  - MarketWatch top stories RSS
+Two classification passes:
+  Pass 1 — Curated keyword matching for macro/geopolitical themes
+            (Fed policy, OPEC, inflation, geopolitics, etc.)
+  Pass 2 — Claude AI classification for company-specific catalysts
+            (earnings, product launches, FDA, M&A, CEO changes, etc.)
+            Only runs on headlines that didn't match Pass 1.
 
-Results are cached for 20 minutes.
+Sources: Google News RSS, Reuters, CNBC, MarketWatch.
+Cache: 20 minutes.
 """
 
+import json
 import time
 import feedparser
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
+from app.core.config import settings
+
 # ---------------------------------------------------------------------------
-# RSS feed sources
+# RSS sources
 # ---------------------------------------------------------------------------
 
 GOOGLE_NEWS_QUERIES = [
@@ -29,20 +34,23 @@ GOOGLE_NEWS_QUERIES = [
     "tariff trade war",
     "cryptocurrency regulation bitcoin",
     "jobs report unemployment",
+    "earnings surprise revenue",
+    "FDA approval drug",
+    "merger acquisition deal",
 ]
 
 DIRECT_FEEDS = [
     "https://feeds.reuters.com/reuters/businessNews",
     "https://feeds.reuters.com/reuters/UKdomesticNews",
-    "https://www.cnbc.com/id/100003114/device/rss/rss.html",   # CNBC markets
-    "https://www.cnbc.com/id/10000664/device/rss/rss.html",    # CNBC economy
+    "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+    "https://www.cnbc.com/id/10000664/device/rss/rss.html",
     "https://feeds.marketwatch.com/marketwatch/topstories/",
 ]
 
 GOOGLE_RSS_BASE = "https://news.google.com/rss/search?q={query}&hl=en-US&gl=US&ceid=US:en"
 
 # ---------------------------------------------------------------------------
-# Macro impact rules (same as before — keyword → affected assets)
+# Macro impact rules (Pass 1)
 # ---------------------------------------------------------------------------
 
 MACRO_RULES = [
@@ -100,9 +108,9 @@ MACRO_RULES = [
         "keywords": ["china gdp", "china economy", "china slowdown", "china pmi", "china data"],
         "direction_hint": "China weakness",
         "impacts": [
-            {"label": "Copper",  "ticker": "HG=F",   "direction": "bearish", "reason": "China is the world's largest copper consumer"},
+            {"label": "Copper",  "ticker": "HG=F",    "direction": "bearish", "reason": "China is the world's largest copper consumer"},
             {"label": "AUD/USD", "ticker": "AUDUSD=X","direction": "bearish", "reason": "Australia's economy is closely tied to Chinese demand"},
-            {"label": "Oil",     "ticker": "CL=F",   "direction": "bearish", "reason": "China is a top global oil importer"},
+            {"label": "Oil",     "ticker": "CL=F",    "direction": "bearish", "reason": "China is a top global oil importer"},
         ],
     },
     {
@@ -151,22 +159,11 @@ MACRO_RULES = [
 _cache: dict = {}
 CACHE_TTL = 20 * 60  # 20 minutes
 
-
 # ---------------------------------------------------------------------------
-# Helpers
+# RSS helpers
 # ---------------------------------------------------------------------------
-
-def _classify(title: str, summary: str | None) -> dict | None:
-    text = (title + " " + (summary or "")).lower()
-    for rule in MACRO_RULES:
-        for kw in rule["keywords"]:
-            if kw in text:
-                return rule
-    return None
-
 
 def _parse_date(entry) -> str:
-    """Return ISO timestamp from a feedparser entry, falling back to now."""
     for attr in ("published", "updated"):
         raw = getattr(entry, attr, None)
         if raw:
@@ -184,7 +181,6 @@ def _fetch_feed(url: str) -> list[dict]:
         title = getattr(entry, "title", "") or ""
         if not title:
             continue
-        # Google News prefixes "Source - " — strip it
         if " - " in title:
             title = title.rsplit(" - ", 1)[0].strip()
         articles.append({
@@ -196,6 +192,115 @@ def _fetch_feed(url: str) -> list[dict]:
         })
     return articles
 
+# ---------------------------------------------------------------------------
+# Pass 1 — curated macro keyword matching
+# ---------------------------------------------------------------------------
+
+def _macro_classify(title: str, summary: str | None) -> dict | None:
+    text = (title + " " + (summary or "")).lower()
+    for rule in MACRO_RULES:
+        for kw in rule["keywords"]:
+            if kw in text:
+                return rule
+    return None
+
+# ---------------------------------------------------------------------------
+# Pass 2 — Claude AI company-specific classification
+# ---------------------------------------------------------------------------
+
+AI_BATCH_SIZE = 25  # headlines per Claude call
+
+AI_PROMPT = """\
+You are a financial news classifier. Analyze the headlines below and identify \
+company-specific market catalysts — events that have a direct, material impact \
+on a specific publicly traded company's stock price.
+
+Qualifying event types: earnings beat/miss, revenue guidance, product launch, \
+FDA approval/rejection, M&A deal, CEO/leadership change, major contract win/loss, \
+regulatory action, IPO, share buyback, dividend change, lawsuit outcome, \
+data breach, major partnership.
+
+For each qualifying headline return a JSON object. Skip headlines that are:
+- General market commentary with no specific company
+- Already macro/geopolitical themes (Fed, oil, gold, inflation, geopolitics)
+- Unclear, opinion pieces, or listicles
+
+Return ONLY a JSON array (no markdown, no explanation):
+[
+  {
+    "i": <headline index as integer>,
+    "ticker": "<US exchange ticker, e.g. AAPL>",
+    "company": "<full company name>",
+    "event_type": "<short label e.g. Earnings Beat, FDA Approval, Product Launch>",
+    "direction": "<bullish|bearish|watch>",
+    "reason": "<one sentence why this moves the stock>"
+  }
+]
+
+If no headlines qualify, return [].
+
+Headlines:
+"""
+
+
+def _ai_classify_company_events(articles: list[dict]) -> list[dict]:
+    """Send a batch of unmatched headlines to Claude and parse company events."""
+    api_key = settings.anthropic_api_key
+    if not api_key:
+        return []
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+    except Exception:
+        return []
+
+    results = []
+    # Process in batches
+    for batch_start in range(0, len(articles), AI_BATCH_SIZE):
+        batch = articles[batch_start: batch_start + AI_BATCH_SIZE]
+        headlines_text = "\n".join(
+            f"{i}. {a['title']}" for i, a in enumerate(batch)
+        )
+
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1024,
+                messages=[{"role": "user", "content": AI_PROMPT + headlines_text}],
+            )
+            raw = response.content[0].text.strip()
+            # Strip markdown code fences if present
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            classified = json.loads(raw)
+        except Exception:
+            continue
+
+        for item in classified:
+            idx = item.get("i")
+            if idx is None or not isinstance(idx, int) or idx >= len(batch):
+                continue
+            article = batch[idx]
+            results.append({
+                "category": "company",
+                "title": article["title"],
+                "source": article["source"],
+                "url": article["url"],
+                "published_at": article["published_at"],
+                "ticker": item.get("ticker", ""),
+                "company": item.get("company", ""),
+                "event_type": item.get("event_type", ""),
+                "direction": item.get("direction", "watch"),
+                "reason": item.get("reason", ""),
+                # not used by company card but keeps schema consistent
+                "direction_hint": item.get("event_type", ""),
+                "impacts": [],
+            })
+
+    return results
 
 # ---------------------------------------------------------------------------
 # Public API
@@ -209,7 +314,6 @@ def get_macro_events(limit: int = 15) -> dict:
 
     all_articles: list[dict] = []
 
-    # Google News keyword feeds
     for query in GOOGLE_NEWS_QUERIES:
         url = GOOGLE_RSS_BASE.format(query=query.replace(" ", "+"))
         try:
@@ -217,43 +321,55 @@ def get_macro_events(limit: int = 15) -> dict:
         except Exception:
             pass
 
-    # Direct financial RSS feeds
     for url in DIRECT_FEEDS:
         try:
             all_articles.extend(_fetch_feed(url))
         except Exception:
             pass
 
-    # Sort newest first
     all_articles.sort(key=lambda a: a["published_at"], reverse=True)
 
-    events = []
+    # Deduplicate by title
     seen: set[str] = set()
+    unique: list[dict] = []
+    for a in all_articles:
+        if a["title"] and a["title"] not in seen:
+            seen.add(a["title"])
+            unique.append(a)
 
-    for article in all_articles:
-        title = article["title"]
-        if not title or title in seen:
-            continue
-        seen.add(title)
+    # Pass 1 — macro keyword matching
+    macro_events: list[dict] = []
+    unmatched: list[dict] = []
+    for article in unique:
+        rule = _macro_classify(article["title"], article.get("summary"))
+        if rule:
+            macro_events.append({
+                "category": "macro",
+                "title": article["title"],
+                "source": article["source"],
+                "url": article["url"],
+                "published_at": article["published_at"],
+                "direction_hint": rule["direction_hint"],
+                "impacts": rule["impacts"],
+                # not used by macro card
+                "ticker": "",
+                "company": "",
+                "event_type": "",
+                "direction": "",
+                "reason": "",
+            })
+        else:
+            unmatched.append(article)
 
-        rule = _classify(title, article.get("summary"))
-        if rule is None:
-            continue
+    # Pass 2 — AI company classification (on unmatched headlines only)
+    company_events = _ai_classify_company_events(unmatched[:50])
 
-        events.append({
-            "title": title,
-            "source": article["source"],
-            "url": article["url"],
-            "published_at": article["published_at"],
-            "direction_hint": rule["direction_hint"],
-            "impacts": rule["impacts"],
-        })
-
-        if len(events) >= limit:
-            break
+    # Merge and sort newest first
+    all_events = macro_events + company_events
+    all_events.sort(key=lambda e: e["published_at"], reverse=True)
 
     result = {
-        "events": events,
+        "events": all_events[:limit],
         "fetched_at": datetime.now(timezone.utc).isoformat(),
         "error": None,
     }

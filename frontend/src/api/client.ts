@@ -267,12 +267,20 @@ export interface MacroImpact {
 }
 
 export interface MacroEvent {
+  category: 'macro' | 'company'
   title: string
   source: string
   url: string
   published_at: string
+  // macro fields
   direction_hint: string
   impacts: MacroImpact[]
+  // company fields
+  ticker: string
+  company: string
+  event_type: string
+  direction: string
+  reason: string
 }
 
 export interface MacroEventsResult {
