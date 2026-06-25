@@ -186,6 +186,7 @@ export function SignalsPanel({ data, isLoading, rr, onRRChange, selectedZoneId, 
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-600 hidden sm:block">Risk / Reward</span>
+          <span className="text-xs text-gray-600 sm:hidden">R/R</span>
           <span className="text-xs text-gray-600">1 :</span>
           <input
             type="number"
