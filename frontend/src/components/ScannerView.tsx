@@ -102,6 +102,10 @@ function HitCard({ hit, onSelect }: { hit: ScanHit; onSelect: () => void }) {
           <span className="text-[9px] text-gray-700 uppercase tracking-widest">SL </span>
           <span className="text-[11px] font-mono text-red-400/70">{fmt(hit.stop_loss)}</span>
         </div>
+        <div>
+          <span className="text-[9px] text-gray-700 uppercase tracking-widest">TP </span>
+          <span className="text-[11px] font-mono text-emerald-400/70">{fmt(hit.take_profit)}</span>
+        </div>
         <DistanceBadge pct={hit.distance_pct} />
       </div>
     </button>
