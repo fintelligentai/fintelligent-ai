@@ -68,7 +68,7 @@ function MacroEventCard({ event }: { event: MacroEvent }) {
   return (
     <CardShell event={event} tag={<MacroTag hint={event.direction_hint} />}>
       <div className="flex flex-wrap gap-2">
-        {event.impacts.map((imp, i) => <ImpactPill key={i} impact={imp} />)}
+        {event.impacts.filter(imp => imp.direction !== 'watch').map((imp, i) => <ImpactPill key={i} impact={imp} />)}
       </div>
     </CardShell>
   )
